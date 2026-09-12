@@ -149,9 +149,15 @@
 <!-- ===== SCROLL TO TOP ===== -->
 <button class="scroll-top" id="scrollTop"><i class="fa-solid fa-arrow-up"></i></button>
 
-<!-- ===== تحميل البيانات أولاً ===== -->
+<!-- ===== Firebase (قراءة البيانات من Firestore) ===== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-service.js"></script>
+<!-- ===== البيانات الاحتياطية (تُستخدم لو لم تكتمل إعدادات Firebase) ===== -->
 <script src="data.js"></script>
-<!-- ===== ثم السكربت الرئيسي ===== -->
+<!-- ===== السكربت الرئيسي ===== -->
 <script src="script.js"></script>
 
 </body>

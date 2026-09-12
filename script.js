@@ -2,11 +2,17 @@
 // PORTFOLIO — Gehad Adam (Dynamic from data.js)
 // ===================================================================
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
   // ---------- تحميل البيانات ----------
-  const data = PORTFOLIO_DATA;
-  const D = data;
+  // يحاول القراءة من Firestore عبر PortfolioStore،
+  // وإن لم تتوفر إعدادات Firebase يستخدم data.js كاحتياط.
+  let siteData = null;
+  try {
+    siteData = window.PortfolioStore ? await PortfolioStore.loadSiteData() : null;
+  } catch (e) { console.error('Failed to load from Firestore:', e); }
+
+  const D = siteData ? { ...PORTFOLIO_DATA, ...siteData } : PORTFOLIO_DATA;
 
   // ================================================================
   // 1. HERO
@@ -43,6 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // ================================================================
   document.getElementById('aboutText1').textContent = D.about.text1;
   document.getElementById('aboutText2').textContent = D.about.text2;
+
+  // ---------- صورة الملف الشخصي (من Cloudinary أو الملف المحلي) ----------
+  if (D.paths && D.paths.profileImage) {
+    const profileImg = document.getElementById('profileImage');
+    if (profileImg) profileImg.src = D.paths.profileImage;
+  }
 
   const statsContainer = document.getElementById('statsContainer');
   D.stats.forEach(stat => {
@@ -126,7 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement('article');
         card.className = 'project-card';
         card.dataset.category = cat.id;
-        const imagePath = `${D.paths.projectsBase}${cat.folder}/${img.file}`;
+        // الصورة إما URL رابط (Cloudinary) أو مسار ملف محلي
+        const imagePath = img.url || `${D.paths.projectsBase}${cat.folder}/${img.file}`;
         card.innerHTML = `
           <div class="project-card__media">
             <img src="${imagePath}" alt="${img.title}" onerror="this.parentElement.classList.add('no-image')">
