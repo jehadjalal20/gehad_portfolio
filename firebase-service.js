@@ -72,7 +72,13 @@ window.PortfolioStore = (() => {
         images: projDocs
           .filter(p => p.categoryId === c.id)
           .sort((a, b) => (a.order || 0) - (b.order || 0))
-          .map(p => ({ url: p.url, title: p.title || '', tags: Array.isArray(p.tags) ? p.tags : [] }))
+          .map(p => ({
+            url: p.url || '',
+            file: p.file || '',
+            title: p.title || '',
+            tags: Array.isArray(p.tags) ? p.tags : [],
+            hidden: !!p.hidden
+          }))
       }));
 
       if (categories.length || main) out.projects = { categories };
@@ -102,7 +108,7 @@ window.PortfolioStore = (() => {
     return out;
   }
 
-  async function addCategory(label) {
+  async function addCategory(label, folder) {
     await init();
     const cats = await listCategories();
     const order = cats.length ? Math.max(...cats.map(c => c.order || 0)) + 1 : 1;
@@ -113,7 +119,9 @@ window.PortfolioStore = (() => {
     let id = base;
     let i = 2;
     while (cats.some(c => c.id === id)) id = `${base}-${i++}`;
-    await db.collection('projectCategories').doc(id).set({ id, label, order });
+    const payload = { id, label, order };
+    if (folder) payload.folder = folder;
+    await db.collection('projectCategories').doc(id).set(payload);
     return id;
   }
 
@@ -164,8 +172,10 @@ window.PortfolioStore = (() => {
     return (await db.collection('projects').add({
       categoryId,
       url: data.url || '',
+      file: data.file || '',
       title: data.title || '',
       tags: Array.isArray(data.tags) ? data.tags : [],
+      hidden: !!data.hidden,
       order
     })).id;
   }
@@ -174,8 +184,11 @@ window.PortfolioStore = (() => {
     await init();
     const patch = {};
     if (data.url !== undefined) patch.url = data.url;
+    if (data.file !== undefined) patch.file = data.file;
     if (data.title !== undefined) patch.title = data.title;
     if (data.tags !== undefined) patch.tags = Array.isArray(data.tags) ? data.tags : [];
+    if (data.hidden !== undefined) patch.hidden = !!data.hidden;
+    if (data.order !== undefined) patch.order = data.order;
     await db.collection('projects').doc(id).update(patch);
   }
 
@@ -205,17 +218,21 @@ window.PortfolioStore = (() => {
   }
 
   // ---------- ميثود رفع الصور إلى Cloudinary (تستخدمها اللوحة فقط) ----------
-  const cloudReady = () => typeof window.CLOUDINARY_CONFIG !== 'undefined'
-    && !String(window.CLOUDINARY_CONFIG.cloudName || '').startsWith('YOUR_')
-    && !String(window.CLOUDINARY_CONFIG.uploadPreset || '').startsWith('YOUR_');
+  const cloudReady = () => {
+    const c = window.CLOUDINARY_CONFIG;
+    return !!(c
+      && String(c.cloudName || '').trim() && !String(c.cloudName).startsWith('YOUR_')
+      && String(c.uploadPreset || '').trim() && !String(c.uploadPreset).startsWith('YOUR_'));
+  };
 
   async function uploadImage(file) {
     if (!cloudReady()) throw new Error('Cloudinary NOT configured.');
+    const c = window.CLOUDINARY_CONFIG;
     const form = new FormData();
     form.append('file', file);
-    form.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
-    form.append('folder', `portfolio/${Date.now()}_${file.name.replace(/[^\w.\-]+/g, '_')}`);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`, {
+    form.append('upload_preset', c.uploadPreset);
+    form.append('folder', 'gehad_portfolio');
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${c.cloudName}/image/upload`, {
       method: 'POST',
       body: form
     });
@@ -226,10 +243,12 @@ window.PortfolioStore = (() => {
 
   async function uploadRaw(file) {
     if (!cloudReady()) throw new Error('Cloudinary NOT configured.');
+    const c = window.CLOUDINARY_CONFIG;
     const form = new FormData();
     form.append('file', file);
-    form.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/raw/upload`, {
+    form.append('upload_preset', c.uploadPreset);
+    form.append('folder', 'gehad_portfolio');
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${c.cloudName}/raw/upload`, {
       method: 'POST',
       body: form
     });

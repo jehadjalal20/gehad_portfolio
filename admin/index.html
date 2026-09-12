@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة إدارة الموقع — Gehad Adam</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===== شاشة تسجيل الدخول ===== -->
+  <section id="loginScreen" class="screen">
+    <div class="login-card">
+      <div class="login-card__icon"><i class="fa-solid fa-user-shield"></i></div>
+      <h1>لوحة إدارة الموقع</h1>
+      <p>سجّل الدخول بحساب Google المصرّح له لإدارة كل بيانات الموقع.<br>البيانات تُحفظ في Firestore والصور في Cloudinary تلقائياً.</p>
+      <button id="loginBtn" class="btn btn--primary btn--lg">
+        <i class="fa-brands fa-google"></i> تسجيل الدخول بحساب Google
+      </button>
+      <p id="loginMsg" class="login-msg"></p>
+      <a class="login-card__back" href="../index.html">← العودة إلى الموقع</a>
+    </div>
+  </section>
+
+  <!-- ===== لوحة التحكم ===== -->
+  <section id="appScreen" class="screen hidden">
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <span class="sidebar__logo">&lt;</span>Admin<span class="sidebar__logo">/&gt;</span>
+      </div>
+      <nav class="sidebar__nav">
+        <button class="tab-btn active" data-tab="personal"><i class="fa-solid fa-user"></i> البيانات الشخصية</button>
+        <button class="tab-btn" data-tab="hero"><i class="fa-solid fa-wand-magic-sparkles"></i> الهيرو والبادجات</button>
+        <button class="tab-btn" data-tab="about"><i class="fa-solid fa-circle-info"></i> عني والإحصائيات</button>
+        <button class="tab-btn" data-tab="skills"><i class="fa-solid fa-layer-group"></i> المهارات</button>
+        <button class="tab-btn" data-tab="timelines"><i class="fa-solid fa-briefcase"></i> الخبرة والتعليم</button>
+        <button class="tab-btn" data-tab="projects"><i class="fa-solid fa-images"></i> المشاريع والصور</button>
+        <button class="tab-btn" data-tab="media"><i class="fa-solid fa-folder-open"></i> الصور والملفات</button>
+        <button class="tab-btn" data-tab="contact"><i class="fa-solid fa-envelope"></i> التواصل والفوتر</button>
+      </nav>
+      <div class="sidebar__foot">
+        <a class="btn btn--ghost btn--block" href="../index.html"><i class="fa-solid fa-globe"></i> عرض الموقع</a>
+        <button id="logoutBtn" class="btn btn--ghost btn--block"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="content__header">
+        <h1 id="tabTitle"></h1>
+        <div class="content__actions">
+          <button id="downloadBtn" class="btn" title="نسخة احتياطية JSON"><i class="fa-solid fa-download"></i> نسخة احتياطية</button>
+          <button id="restoreBtn" class="btn" title="استرجاع من ملف JSON"><i class="fa-solid fa-upload"></i> استرجاع</button>
+          <button id="syncBtn" class="btn" title="إعادة التحميل من Firestore"><i class="fa-solid fa-rotate"></i> تحديث</button>
+          <button id="saveBtn" class="btn btn--primary" title="حفظ كل البيانات ونشرها">
+            <i class="fa-solid fa-floppy-disk"></i> حفظ ونشر
+          </button>
+        </div>
+      </header>
+      <div id="statusBar" class="status-bar"></div>
+      <div id="uploadProgress" class="progress hidden"></div>
+
+      <div class="content__body" id="panels">
+        <div class="tab-panel active" id="panel-personal"></div>
+        <div class="tab-panel" id="panel-hero"></div>
+        <div class="tab-panel" id="panel-about"></div>
+        <div class="tab-panel" id="panel-skills"></div>
+        <div class="tab-panel" id="panel-timelines"></div>
+        <div class="tab-panel" id="panel-projects"></div>
+        <div class="tab-panel" id="panel-media"></div>
+        <div class="tab-panel" id="panel-contact"></div>
+      </div>
+    </main>
+  </section>
+
+  <div id="toast" class="toast"></div>
+  <input type="file" id="jsonInput" accept=".json" class="hidden">
+
+  <!-- أيقونات FontAwesome شائعة (للإكمال التلقائي) -->
+  <datalist id="faIcons">
+    <option value="fa-solid fa-pen-ruler"></option>
+    <option value="fa-solid fa-seedling"></option>
+    <option value="fa-solid fa-tree"></option>
+    <option value="fa-solid fa-leaf"></option>
+    <option value="fa-solid fa-microscope"></option>
+    <option value="fa-solid fa-plant-wilt"></option>
+    <option value="fa-solid fa-flask"></option>
+    <option value="fa-solid fa-droplet"></option>
+    <option value="fa-solid fa-file-lines"></option>
+    <option value="fa-regular fa-file-excel"></option>
+    <option value="fa-solid fa-language"></option>
+    <option value="fa-solid fa-map"></option>
+    <option value="fa-solid fa-sun"></option>
+    <option value="fa-solid fa-moon"></option>
+    <option value="fa-solid fa-star"></option>
+    <option value="fa-solid fa-cloud"></option>
+    <option value="fa-solid fa-wand-magic-sparkles"></option>
+    <option value="fa-solid fa-code"></option>
+    <option value="fa-solid fa-bolt"></option>
+    <option value="fa-solid fa-scale-balanced"></option>
+  </datalist>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <!-- الإعدادات + طبقة البيانات المشتركة + البيانات الاحتياطية -->
+  <script src="../firebase-config.js"></script>
+  <script src="../firebase-service.js"></script>
+  <script src="../data.js"></script>
+  <!-- منطق لوحة الإدارة -->
+  <script src="js/app.js"></script>
+</body>
+</html>

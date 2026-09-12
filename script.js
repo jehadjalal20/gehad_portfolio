@@ -115,7 +115,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const projectsGrid = document.getElementById('projectsGrid');
 
   // ---------- أزرار الفلاتر ----------
-  const allCategories = ['all', ...D.projects.categories.map(c => c.id)];
+  const visibleCategories = D.projects.categories.filter(c => Array.isArray(c.images) && c.images.some(i => !i.hidden));
+  const allCategories = ['all', ...visibleCategories.map(c => c.id)];
   allCategories.forEach(catId => {
     const btn = document.createElement('button');
     btn.className = `category-btn${catId === 'all' ? ' active' : ''}`;
@@ -134,12 +135,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     projectsGrid.innerHTML = '';
     D.projects.categories.forEach(cat => {
       if (categoryFilter !== 'all' && cat.id !== categoryFilter) return;
-      cat.images.forEach(img => {
+      (cat.images || []).filter(img => !img.hidden).forEach(img => {
         const card = document.createElement('article');
         card.className = 'project-card';
         card.dataset.category = cat.id;
         // الصورة إما URL رابط (Cloudinary) أو مسار ملف محلي
-        const imagePath = img.url || `${D.paths.projectsBase}${cat.folder}/${img.file}`;
+        const localPath = (img.file && cat.folder) ? `${D.paths.projectsBase}${cat.folder}/${img.file}` : (img.file || '');
+        const imagePath = img.url || localPath;
         card.innerHTML = `
           <div class="project-card__media">
             <img src="${imagePath}" alt="${img.title}" onerror="this.parentElement.classList.add('no-image')">

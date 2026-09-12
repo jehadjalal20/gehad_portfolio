@@ -31,6 +31,16 @@ const CLOUDINARY_CONFIG = {
   uploadPreset: "ml_default"
 };
 
+// 📧 الإيميلات المصرّح لها بالدخول إلى لوحة الإدارة (أضِف أي إيميل تريده)
+const ADMIN_EMAILS = ["jehadjalal20@gmail.com"];
+
 // فلاغات تلقائية: هل تم وضع إعدادات حقيقية؟ (لا تعدلي هذا السطر)
 const FIREBASE_CONFIGURED = !!(firebaseConfig.apiKey && !String(firebaseConfig.apiKey).startsWith('YOUR_'));
 const CLOUDINARY_CONFIGURED = !!(CLOUDINARY_CONFIG.cloudName && !String(CLOUDINARY_CONFIG.cloudName).startsWith('YOUR_'));
+
+// تصدير الإعدادات لكل ملفات الموقع (firebase-service.js + لوحة الإدارة admin/)
+window.FIREBASE_CONFIG = firebaseConfig;
+window.CLOUDINARY_CONFIG = CLOUDINARY_CONFIG;
+window.ADMIN_EMAILS = ADMIN_EMAILS;
+window.FIREBASE_CONFIGURED = FIREBASE_CONFIGURED;
+window.CLOUDINARY_CONFIGURED = CLOUDINARY_CONFIGURED;
