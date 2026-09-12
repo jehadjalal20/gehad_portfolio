@@ -18,6 +18,8 @@
   let auth = null;
   let currentTab = 'personal';
   let cloudReady = false;
+  let signedInUser = null;   // المستخدم المسجل حالياً (يمنع إغلاق اللوحة بإشارات خروج عابرة)
+  let entering = null;       // يمنع تحميل البيانات مرتين متزامنتين
 
   function getByPath(obj, path) {
     return String(path).split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
@@ -91,10 +93,16 @@
   }
 
   async function enterDashboard(user) {
+    signedInUser = user;
     $('#loginScreen').classList.add('hidden');
     $('#appScreen').classList.remove('hidden');
     $('#loginMsg').textContent = 'مرحباً ' + (user.displayName || user.email);
-    await loadAll();
+    if (entering) return entering;
+    entering = loadAll().catch(err => {
+      console.error('loadAll error:', err);
+      toast('حدث خطأ أثناء تحميل البيانات: ' + (err && err.message), 'err');
+    }).finally(() => { entering = null; });
+    return entering;
   }
 
   // ---------- تجميع البيانات ----------
@@ -570,7 +578,7 @@
       if (!confirm('إعادة التحميل من Firestore؟ (سيتم تجاهل أي تعديل لم يُحفظ)')) return;
       await loadAll();
     });
-    $('#logoutBtn').addEventListener('click', () => { window.firebase.auth().signOut(); showLogin(); });
+    $('#logoutBtn').addEventListener('click', async () => { signedInUser = null; await window.firebase.auth().signOut(); showLogin(); });
     $('#loginBtn').addEventListener('click', doGoogleLogin);
 
     // نسخ احتياطي
@@ -855,13 +863,15 @@
       if (user) {
         const allowed = (window.ADMIN_EMAILS || []).map(x => String(x).toLowerCase().trim());
         if (allowed.length && !allowed.includes(String(user.email).toLowerCase())) {
+          signedInUser = null;
           showLogin('هذا الحساب غير مصرّح له بلوحة الإدارة: ' + user.email);
           await window.firebase.auth().signOut();
           return;
         }
         await enterDashboard(user);
       } else {
-        showLogin();
+        // تجاهل إشارات الخروج العابرة التي قد تأتي مباشرة بعد تسجيل الدخول
+        if (!signedInUser) showLogin();
       }
     });
   });
